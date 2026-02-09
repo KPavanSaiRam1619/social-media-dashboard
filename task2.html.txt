@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Social Media Dashboard</title>
+
+<!-- React & Router CDN -->
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<style>
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+body { margin: 0; background: #f4f6f8; }
+
+.dark { background:#121212; color:white; }
+
+.navbar {
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+  background:#1877f2;
+  color:white;
+}
+
+.navbar a {
+  color:white;
+  margin:0 10px;
+  text-decoration:none;
+}
+
+.container {
+  padding:20px;
+  max-width:900px;
+  margin:auto;
+}
+
+.card {
+  background:white;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:15px;
+}
+
+.dark .card { background:#1e1e1e; }
+
+button {
+  padding:6px 12px;
+  margin-right:5px;
+  cursor:pointer;
+}
+
+input {
+  padding:6px;
+  width:100%;
+  margin-top:8px;
+}
+
+.profile {
+  text-align:center;
+}
+
+.profile img {
+  width:120px;
+  border-radius:50%;
+}
+
+@media(max-width:600px){
+  .navbar { flex-direction:column; }
+}
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+const { BrowserRouter, Routes, Route, Link } = ReactRouterDOM;
+
+/* ---------------- Reusable Components ---------------- */
+
+const Card = ({children}) => (
+  <div className="card">{children}</div>
+);
+
+const Button = ({text, onClick}) => (
+  <button onClick={onClick}>{text}</button>
+);
+
+/* ---------------- Navbar ---------------- */
+
+const Navbar = ({toggleTheme}) => (
+  <div className="navbar">
+    <div>
+      <Link to="/">Home</Link>
+      <Link to="/profile">Profile</Link>
+      <Link to="/notifications">Notifications</Link>
+      <Link to="/messages">Messages</Link>
+    </div>
+    <Button text="Toggle Theme" onClick={toggleTheme}/>
+  </div>
+);
+
+/* ---------------- Pages ---------------- */
+
+const Home = () => {
+  const [posts, setPosts] = React.useState([]);
+
+  React.useEffect(() => {
+    setPosts([
+      {id:1, user:"Pavan", text:"Hello React!", likes:0, comments:[]},
+      {id:2, user:"Alex", text:"Dashboard project 🚀", likes:2, comments:[]}
+    ]);
+  }, []);
+
+  const likePost = id => {
+    setPosts(posts.map(p =>
+      p.id === id ? {...p, likes:p.likes+1} : p
+    ));
+  };
+
+  const addComment = (id, comment) => {
+    setPosts(posts.map(p =>
+      p.id === id ? {...p, comments:[...p.comments, comment]} : p
+    ));
+  };
+
+  return (
+    <div className="container">
+      <h2>Home Feed</h2>
+      {posts.map(post => (
+        <Card key={post.id}>
+          <h4>{post.user}</h4>
+          <p>{post.text}</p>
+          <Button text={`Like (${post.likes})`} onClick={()=>likePost(post.id)}/>
+          <CommentBox onAdd={(c)=>addComment(post.id,c)}/>
+          {post.comments.map((c,i)=> <p key={i}>💬 {c}</p>)}
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+const CommentBox = ({onAdd}) => {
+  const [text,setText] = React.useState("");
+  return (
+    <>
+      <input placeholder="Add comment"
+        value={text}
+        onChange={e=>setText(e.target.value)}
+      />
+      <Button text="Post" onClick={()=>{onAdd(text); setText("");}}/>
+    </>
+  );
+};
+
+const Profile = () => (
+  <div className="container">
+    <Card>
+      <div className="profile">
+        <img src="https://i.pravatar.cc/150"/>
+        <h3>K Pavan</h3>
+        <p>Frontend Developer | React Enthusiast</p>
+      </div>
+    </Card>
+  </div>
+);
+
+const Notifications = () => (
+  <div className="container">
+    <Card><p>🔔 Alex liked your post</p></Card>
+    <Card><p>🔔 New message received</p></Card>
+  </div>
+);
+
+const Messages = () => (
+  <div className="container">
+    <Card>
+      <p><strong>Alex:</strong> Hi Pavan!</p>
+      <p><strong>You:</strong> Hello 👋</p>
+    </Card>
+  </div>
+);
+
+/* ---------------- App ---------------- */
+
+const App = () => {
+  const [dark,setDark] = React.useState(false);
+
+  return (
+    <div className={dark ? "dark" : ""}>
+      <BrowserRouter>
+        <Navbar toggleTheme={()=>setDark(!dark)}/>
+        <Routes>
+          <Route path="/" element={<Home/>}/>
+          <Route path="/profile" element={<Profile/>}/>
+          <Route path="/notifications" element={<Notifications/>}/>
+          <Route path="/messages" element={<Messages/>}/>
+        </Routes>
+      </BrowserRouter>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+
+</script>
+</body>
+</html>
